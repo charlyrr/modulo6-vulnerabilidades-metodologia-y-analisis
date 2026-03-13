@@ -3,6 +3,7 @@
 ## Práctica individual – Metodología de análisis y explotación
 
 Autor: Carlos Ruesca
+
 Máster en Ciberseguridad  
 
 ---
