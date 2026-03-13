@@ -21,27 +21,13 @@ La máquina virtual se utiliza como entorno de pruebas donde se instalan todas l
 
 ---
 
-# Estructura del laboratorio
-
-Dentro de la máquina virtual se ha creado una carpeta de trabajo para organizar todas las herramientas y recursos del laboratorio.
-
-Ejemplo de estructura:
-C:\Lab
-├── Installers
-├── Tools
-├── VulnApps
-└── Notes
-
-
-Esto permite mantener organizados los instaladores, herramientas y aplicaciones vulnerables utilizadas durante la práctica.
-
----
-
 # Instalación de herramientas
 
 Siguiendo lo explicado en clase, las herramientas se han instalado manualmente descargándolas desde las páginas oficiales de los fabricantes.
 
 Esto permite comprender mejor el papel de cada herramienta dentro del proceso de análisis.
+
+<img alt="image" src="https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/herramientas.png"/>
 
 ---
 
@@ -50,14 +36,17 @@ Esto permite comprender mejor el papel de cada herramienta dentro del proceso de
 ## Python
 
 Python se utiliza para ejecutar scripts y herramientas utilizadas durante el análisis de vulnerabilidades.
+Para conseguir python puedes acceder a su pagina oficial https://www.python.org/downloads/ o en la instalacion de Immunity Debugger se instalara la vcersion 2.7 de forma automatica.
 
-![Python instalado](img/python_instalado.png)
+
+<img alt="image" src="https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/python.png"/>
 
 ---
 
 ## Java
 
 Java es necesario para ejecutar herramientas de reversing como Ghidra.
+Para descargar java desde su pagina oficial https://www.oracle.com/es/java/technologies/downloads/
 
 ![Java instalado](img/java_instalado.png)
 
