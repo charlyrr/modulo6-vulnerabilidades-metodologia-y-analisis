@@ -17,7 +17,7 @@ El laboratorio se ha creado utilizando:
 
 La máquina virtual se utiliza como entorno de pruebas donde se instalan todas las herramientas necesarias para el análisis de vulnerabilidades.
 
-
+<img alt="image" src="https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/Win11_VM.png"/>
 
 ---
 
