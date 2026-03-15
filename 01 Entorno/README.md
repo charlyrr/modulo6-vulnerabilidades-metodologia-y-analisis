@@ -34,7 +34,7 @@ Python es el lenguaje por excelencia para el desarrollo de exploits. Lo usaremos
 ### ☕ Java
 **¿Por qué Java?** Herramientas avanzadas de ingeniería inversa creadas por la NSA, como **Ghidra**, están desarrolladas en Java y requieren el JDK/JRE para poder ejecutarse.
 
-<img alt="Python" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/java.png'/>
+<img alt="java" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/java.png'/>
 ---
 
 ## 📝 3. IDEs y Editores de Código
@@ -65,18 +65,19 @@ Analizamos el código sin ejecutarlo para entender su estructura y encontrar pos
 **IDA Free:** El estándar de la industria para desensamblar. Nos muestra el código en ensamblador puro para un análisis quirúrgico.
   
   > 🕵️‍♂️ **Tip de Privacidad:** Para descargar IDA Free, el fabricante (Hex-Rays) te exige introducir un correo electrónico al que te envían el enlace y la licencia gratuita. Como buena práctica de privacidad (y para mantener mi bandeja de entrada limpia de *spam*), he utilizado un correo temporal de 10 minutos a través de [10minemail.com](https://10minemail.com/es/). ¡Muy recomendable para registrarse en este tipo de herramientas!
-> <img alt="Python" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/idafree.png'>
+> <img alt="ida" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/idafree.png'>
 
 ### Análisis Dinámico (Debugging)
 Ejecutamos el programa paso a paso para ver cómo interactúa con la memoria de la CPU (Registros, Pila/Stack, etc.).
 
 * **Immunity Debugger:** Fundamental para la explotación de *Buffer Overflows*. Nos permite adjuntarnos (attach) al proceso vulnerable, enviarle nuestro código y ver exactamente en qué momento "crashea" y si logramos sobrescribir el registro EIP.
 
-<img alt="Python" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/nmmunity.png'>
+<img alt="immunity" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/nmmunity.png'>
 
 * **Mona.py (El ayudante estrella):** Mona es un script creado por Corelan Team que se integra en Immunity Debugger (en la carpeta `PyCommands`). 
   * **¿Por qué lo necesitamos?** Nos automatiza tareas tediosas como crear patrones cíclicos (para medir el tamaño del *buffer*), encontrar *Badchars* (caracteres malos que rompen el exploit) o buscar saltos a nuestro código (instrucciones `JMP ESP`).
-  ![Mona instalado](img/mona.png)
+  <img alt="immunity" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/mona.png'>
+
 
 ---
 
@@ -84,7 +85,7 @@ Ejecutamos el programa paso a paso para ver cómo interactúa con la memoria de 
 
 * **Git:** Para clonar repositorios del curso, descargar exploits públicos de GitHub o gestionar las versiones de nuestro propio código.
 
-<img alt="ghidra" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/git.png'>
+<img alt="git" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/git.png'>
   
 * **Nmap / Ncat:** Ncat (la navaja suiza de red) nos servirá para conectarnos manualmente al puerto de la aplicación vulnerable, entender cómo responde e interactuar con ella antes de automatizar el ataque con Python.
 <img alt="nmap" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/nmap.png'>
@@ -96,7 +97,7 @@ Ejecutamos el programa paso a paso para ver cómo interactúa con la memoria de 
 Antes de enfrentarnos al objetivo final (CVE-2025-5548), entrenaremos con **Vulnserver**. 
 Vulnserver es un servidor TCP escrito intencionadamente con fallos de memoria. Es el "saco de boxeo" perfecto para dominar Immunity Debugger y Mona antes de pasar a un entorno real.
 
-<img alt="ghidra" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/vulnserver.png'>
+<img alt="vulnserver" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/vulnserver.png'>
 ---
 
 ## 🏁 Conclusión de la Fase 1
