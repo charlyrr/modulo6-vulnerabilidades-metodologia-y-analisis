@@ -60,16 +60,17 @@ Aquí está el corazón de nuestro laboratorio. Estas son las herramientas que n
 Analizamos el código sin ejecutarlo para entender su estructura y encontrar posibles fallos en las funciones de memoria.
 
 * **Ghidra:** Nos permite descompilar el binario (pasar de código máquina a un pseudo-código en C) para leer la lógica del programa.
-  ![Ghidra](img/ghidra.png)
+<img alt="ghidra" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/git.png'>
 
 * **IDA Free:** El estándar de la industria para desensamblar. Nos muestra el código en ensamblador puro para un análisis quirúrgico.
-  ![IDA Free](img/ida.png)
+<img alt="Python" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/idra%20free.png'>
 
 ### Análisis Dinámico (Debugging)
 Ejecutamos el programa paso a paso para ver cómo interactúa con la memoria de la CPU (Registros, Pila/Stack, etc.).
 
 * **Immunity Debugger:** Fundamental para la explotación de *Buffer Overflows*. Nos permite adjuntarnos (attach) al proceso vulnerable, enviarle nuestro código y ver exactamente en qué momento "crashea" y si logramos sobrescribir el registro EIP.
-  ![Immunity Debugger](img/immunity.png)
+
+<img alt="Python" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/nmmunity.png'>
 
 * **Mona.py (El ayudante estrella):** Mona es un script creado por Corelan Team que se integra en Immunity Debugger (en la carpeta `PyCommands`). 
   * **¿Por qué lo necesitamos?** Nos automatiza tareas tediosas como crear patrones cíclicos (para medir el tamaño del *buffer*), encontrar *Badchars* (caracteres malos que rompen el exploit) o buscar saltos a nuestro código (instrucciones `JMP ESP`).
