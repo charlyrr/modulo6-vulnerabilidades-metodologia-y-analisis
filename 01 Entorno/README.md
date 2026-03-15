@@ -60,10 +60,12 @@ Aquí está el corazón de nuestro laboratorio. Estas son las herramientas que n
 Analizamos el código sin ejecutarlo para entender su estructura y encontrar posibles fallos en las funciones de memoria.
 
 * **Ghidra:** Nos permite descompilar el binario (pasar de código máquina a un pseudo-código en C) para leer la lógica del programa.
-<img alt="ghidra" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/git.png'>
+<img alt="ghidra" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/ghidra.png'>
 
-* **IDA Free:** El estándar de la industria para desensamblar. Nos muestra el código en ensamblador puro para un análisis quirúrgico.
-<img alt="Python" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/idra%20free.png'>
+**IDA Free:** El estándar de la industria para desensamblar. Nos muestra el código en ensamblador puro para un análisis quirúrgico.
+  
+  > 🕵️‍♂️ **Tip de Privacidad:** Para descargar IDA Free, el fabricante (Hex-Rays) te exige introducir un correo electrónico al que te envían el enlace y la licencia gratuita. Como buena práctica de privacidad (y para mantener mi bandeja de entrada limpia de *spam*), he utilizado un correo temporal de 10 minutos a través de [10minemail.com](https://10minemail.com/es/). ¡Muy recomendable para registrarse en este tipo de herramientas!
+> <img alt="Python" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/idafree.png'>
 
 ### Análisis Dinámico (Debugging)
 Ejecutamos el programa paso a paso para ver cómo interactúa con la memoria de la CPU (Registros, Pila/Stack, etc.).
@@ -81,10 +83,11 @@ Ejecutamos el programa paso a paso para ver cómo interactúa con la memoria de 
 ## 🌐 5. Utilidades de Red y Control de Versiones
 
 * **Git:** Para clonar repositorios del curso, descargar exploits públicos de GitHub o gestionar las versiones de nuestro propio código.
-  ![Git instalado](img/git.png)
 
+<img alt="ghidra" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/git.png'>
+  
 * **Nmap / Ncat:** Ncat (la navaja suiza de red) nos servirá para conectarnos manualmente al puerto de la aplicación vulnerable, entender cómo responde e interactuar con ella antes de automatizar el ataque con Python.
-  ![Ncat](img/ncat.png)
+<img alt="nmap" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/nmap.png'>
 
 ---
 
@@ -93,8 +96,7 @@ Ejecutamos el programa paso a paso para ver cómo interactúa con la memoria de 
 Antes de enfrentarnos al objetivo final (CVE-2025-5548), entrenaremos con **Vulnserver**. 
 Vulnserver es un servidor TCP escrito intencionadamente con fallos de memoria. Es el "saco de boxeo" perfecto para dominar Immunity Debugger y Mona antes de pasar a un entorno real.
 
-![Vulnserver](img/vulnserver.png)
-
+<img alt="ghidra" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/vulnserver.png'>
 ---
 
 ## 🏁 Conclusión de la Fase 1
