@@ -34,7 +34,7 @@ El taller del analista. Aquí documento cómo he configurado una máquina virtua
 * Instalación de herramientas de *Reversing* y *Debugging* (Ghidra, IDA Free, Immunity Debugger + Mona.py).
 * Herramientas de red y lenguajes base (Python, Ncat).
 
-### 🚀 [02 - Análisis y Explotación](02%20Explotacion)
+### 🚀 [02 - Análisis y Explotación](https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/tree/main/02%20Explotacion%20)
 La materialización del riesgo. Contiene el paso a paso metodológico del desarrollo del *exploit* para el **CVE-2025-5548**:
 * **Fase 1:** Fuzzing y provocación del *crash*.
 * **Fase 2 y 3:** Cálculo del Offset y secuestro del registro EIP.
