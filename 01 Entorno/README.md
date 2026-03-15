@@ -7,6 +7,7 @@ Entender **por qué** usamos cada herramienta es la diferencia entre ejecutar un
 
 ---
 
+
 ## 🛡️ 1. La Base: Máquina Virtual (Aislamiento)
 
 El laboratorio se ha construido sobre:
