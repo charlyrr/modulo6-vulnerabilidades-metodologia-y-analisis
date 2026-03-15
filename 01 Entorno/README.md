@@ -66,7 +66,8 @@ Analizamos el código sin ejecutarlo para entender su estructura y encontrar pos
 **IDA Free:** El estándar de la industria para desensamblar. Nos muestra el código en ensamblador puro para un análisis quirúrgico.
   
   > 🕵️‍♂️ **Tip de Privacidad:** Para descargar IDA Free, el fabricante (Hex-Rays) te exige introducir un correo electrónico al que te envían el enlace y la licencia gratuita. Como buena práctica de privacidad (y para mantener mi bandeja de entrada limpia de *spam*), he utilizado un correo temporal de 10 minutos a través de [10minemail.com](https://10minemail.com/es/). ¡Muy recomendable para registrarse en este tipo de herramientas!
-> <img alt="ida" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/idafree.png'>
+>
+<img alt="ida" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/idafree.png'>
 
 ### Análisis Dinámico (Debugging)
 Ejecutamos el programa paso a paso para ver cómo interactúa con la memoria de la CPU (Registros, Pila/Stack, etc.).
