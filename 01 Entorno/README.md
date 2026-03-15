@@ -1,151 +1,103 @@
-# 01 - Preparación del entorno de laboratorio
+# 🏗️ 01 - Preparación del Entorno de Laboratorio: El Taller del Analista
 
-## Objetivo
+## 🎯 Objetivo
+Antes de lanzarnos a explotar el **CVE-2025-5548**, necesitamos construir nuestro "taller". En esta primera fase, hemos preparado un entorno de laboratorio seguro y equipado con todas las herramientas necesarias para analizar aplicaciones vulnerables en Windows.
 
-En esta primera parte de la práctica se ha preparado un entorno de laboratorio para poder analizar aplicaciones vulnerables en Windows.
-
-El entorno se ha construido dentro de una máquina virtual utilizando VirtualBox y Windows 11. Trabajar dentro de una VM permite realizar pruebas de seguridad de forma aislada sin afectar al sistema principal.
-
----
-
-# Máquina virtual utilizada
-
-El laboratorio se ha creado utilizando:
-
-- VirtualBox
-- Windows 11
-
-La máquina virtual se utiliza como entorno de pruebas donde se instalan todas las herramientas necesarias para el análisis de vulnerabilidades.
-
-<img alt="image" src="https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/Win11_VM.png"/>
+Entender **por qué** usamos cada herramienta es la diferencia entre ejecutar un script a ciegas y ser un verdadero analista de vulnerabilidades.
 
 ---
 
-# Instalación de herramientas
+## 🛡️ 1. La Base: Máquina Virtual (Aislamiento)
 
-Siguiendo lo explicado en clase, las herramientas se han instalado manualmente descargándolas desde las páginas oficiales de los fabricantes.
+El laboratorio se ha construido sobre:
+* **Hipervisor:** VirtualBox
+* **Sistema Operativo:** Windows 11
 
-Esto permite comprender mejor el papel de cada herramienta dentro del proceso de análisis.
+**¿Por qué una VM?** Analizar malware o probar exploits (como el que desarrollaremos para el CVE-2025-5548) puede corromper el sistema operativo o dejar puertas traseras abiertas. Trabajar en una máquina virtual nos proporciona un entorno aislado (Sandbox).
 
-<img alt="image" src="https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/herramientas.png"/>
+> 💡 **Tip de Analista:** Tal como vimos en las sesiones técnicas, la regla de oro aquí es el uso de **Snapshots (Instantáneas)**. Antes de ejecutar un exploit que pueda crashear el sistema, tomamos una snapshot para poder revertir los cambios en segundos.
 
----
-
-# Lenguajes instalados
-
-## Python
-
-Python se utiliza para ejecutar scripts y herramientas utilizadas durante el análisis de vulnerabilidades.
-Para conseguir python puedes acceder a su pagina oficial https://www.python.org/downloads/ o en la instalacion de Immunity Debugger se instalara la vcersion 2.7 de forma automatica.
-
-
-<img alt="image" src="https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/python.png"/>
+<img alt="Máquina Virtual Windows 11" src="https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/Win11_VM.png"/>
 
 ---
 
-## Java
+## ⚙️ 2. Dependencias del Sistema
 
-Java es necesario para ejecutar herramientas de reversing como Ghidra.
-Para descargar java desde su pagina oficial https://www.oracle.com/es/java/technologies/downloads/
+Para que nuestro arsenal funcione, necesitamos instalar los motores de ejecución base:
 
-![Java instalado](img/java_instalado.png)
+### 🐍 Python
+Python es el lenguaje por excelencia para el desarrollo de exploits. Lo usaremos para escribir los scripts que enviarán los *payloads* maliciosos al servidor vulnerable (usando librerías como `socket` o `pwntools`).
+* *Nota:* Al instalar Immunity Debugger, se instala automáticamente la versión 2.7, muy común en exploits antiguos, aunque hoy en día es recomendable tener también la versión 3.x.
+
+<img alt="Python" src="https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/python.png"/>
+
+### ☕ Java
+**¿Por qué Java?** Herramientas avanzadas de ingeniería inversa creadas por la NSA, como **Ghidra**, están desarrolladas en Java y requieren el JDK/JRE para poder ejecutarse.
+
+<img alt="Python" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/java.png'/>
+---
+
+## 📝 3. IDEs y Editores de Código
+
+Para escribir nuestros exploits y tomar notas durante el análisis, necesitamos buenos editores:
+
+* **Notepad++:** El bloc de notas con esteroides. Perfecto para revisar logs rápidos o hacer modificaciones ligeras en un script sin consumir recursos.
+<img alt="notepad" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/notepad.png'>
+
+
+* **Visual Studio Code:** Mi editor principal para estructurar el código del exploit y tener una terminal integrada.
+<img alt="visual" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/visaul.png'>
+
+* **PyCharm:** IDE profesional para cuando el exploit en Python requiere de un desarrollo más complejo y un buen autocompletado.
+<img alt="PyCharm" src='https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/pycharm.png'>
+---
+
+## 🔬 4. El Arsenal Principal: Reversing y Debugging
+
+Aquí está el corazón de nuestro laboratorio. Estas son las herramientas que nos permitirán "ver las tripas" del CVE-2025-5548.
+
+### Análisis Estático (Reversing)
+Analizamos el código sin ejecutarlo para entender su estructura y encontrar posibles fallos en las funciones de memoria.
+
+* **Ghidra:** Nos permite descompilar el binario (pasar de código máquina a un pseudo-código en C) para leer la lógica del programa.
+  ![Ghidra](img/ghidra.png)
+
+* **IDA Free:** El estándar de la industria para desensamblar. Nos muestra el código en ensamblador puro para un análisis quirúrgico.
+  ![IDA Free](img/ida.png)
+
+### Análisis Dinámico (Debugging)
+Ejecutamos el programa paso a paso para ver cómo interactúa con la memoria de la CPU (Registros, Pila/Stack, etc.).
+
+* **Immunity Debugger:** Fundamental para la explotación de *Buffer Overflows*. Nos permite adjuntarnos (attach) al proceso vulnerable, enviarle nuestro código y ver exactamente en qué momento "crashea" y si logramos sobrescribir el registro EIP.
+  ![Immunity Debugger](img/immunity.png)
+
+* **Mona.py (El ayudante estrella):** Mona es un script creado por Corelan Team que se integra en Immunity Debugger (en la carpeta `PyCommands`). 
+  * **¿Por qué lo necesitamos?** Nos automatiza tareas tediosas como crear patrones cíclicos (para medir el tamaño del *buffer*), encontrar *Badchars* (caracteres malos que rompen el exploit) o buscar saltos a nuestro código (instrucciones `JMP ESP`).
+  ![Mona instalado](img/mona.png)
 
 ---
 
-# IDEs y editores
+## 🌐 5. Utilidades de Red y Control de Versiones
 
-Durante la práctica se han instalado varios editores de código.
+* **Git:** Para clonar repositorios del curso, descargar exploits públicos de GitHub o gestionar las versiones de nuestro propio código.
+  ![Git instalado](img/git.png)
 
-## Notepad++
-
-Editor ligero utilizado para revisar scripts y notas rápidas.
-
-![Notepad++](img/notepad.png)
+* **Nmap / Ncat:** Ncat (la navaja suiza de red) nos servirá para conectarnos manualmente al puerto de la aplicación vulnerable, entender cómo responde e interactuar con ella antes de automatizar el ataque con Python.
+  ![Ncat](img/ncat.png)
 
 ---
 
-## Visual Studio Code
+## 🎯 6. Target de Pruebas: Aplicaciones Vulnerables
 
-Editor avanzado utilizado para trabajar con scripts y organizar el código.
-
-![VSCode](img/vscode.png)
-
----
-
-## PyCharm
-
-IDE orientado a desarrollo en Python.
-
-![PyCharm](img/pycharm.png)
-
----
-
-# Herramientas de reversing y debugging
-
-## Ghidra
-
-Herramienta de ingeniería inversa utilizada para analizar el binario del programa.
-
-![Ghidra](img/ghidra.png)
-
----
-
-## IDA Free
-
-Desensamblador utilizado para analizar la estructura del programa.
-
-![IDA Free](img/ida.png)
-
----
-
-## Immunity Debugger
-
-Debugger utilizado para observar el comportamiento del programa durante la ejecución.
-
-![Immunity Debugger](img/immunity.png)
-
----
-
-# Mona
-
-Mona es una herramienta que se utiliza dentro de Immunity Debugger para facilitar diferentes fases del análisis de explotación.
-
-El script de Mona se ha copiado en la carpeta `PyCommands` del debugger.
-
-![Mona instalado](img/mona.png)
-
----
-
-# Utilidades adicionales
-
-## Git
-
-Git se utiliza para clonar los repositorios proporcionados en el curso.
-
-![Git instalado](img/git.png)
-
----
-
-## Nmap / Ncat
-
-Ncat se utiliza para comunicarse con aplicaciones vulnerables durante el laboratorio.
-
-![Ncat](img/ncat.png)
-
----
-
-# Aplicaciones vulnerables
-
-Para el laboratorio se han descargado diferentes aplicaciones vulnerables utilizadas para practicar análisis y explotación.
-
-Entre ellas se encuentra Vulnserver, un servidor vulnerable diseñado para practicar explotación de software.
+Antes de enfrentarnos al objetivo final (CVE-2025-5548), entrenaremos con **Vulnserver**. 
+Vulnserver es un servidor TCP escrito intencionadamente con fallos de memoria. Es el "saco de boxeo" perfecto para dominar Immunity Debugger y Mona antes de pasar a un entorno real.
 
 ![Vulnserver](img/vulnserver.png)
 
 ---
 
-# Conclusión
+## 🏁 Conclusión de la Fase 1
 
-La preparación del entorno de laboratorio es una parte fundamental del proceso de análisis de vulnerabilidades.
+La preparación manual de este entorno de laboratorio no es un capricho. Instalar las herramientas paso a paso y entender la función de cada una (Python para el arma, Immunity para apuntar y Mona para calcular la distancia) nos proporciona la base sólida que todo analista de seguridad necesita antes de enfrentarse a un reto de *Exploit Development*. 
 
-Instalar y configurar manualmente las herramientas permite comprender mejor cómo se utilizan durante un análisis real y cómo se integran dentro del flujo de trabajo de un analista de seguridad.
+¡Entorno listo! Pasamos a la fase de análisis.
