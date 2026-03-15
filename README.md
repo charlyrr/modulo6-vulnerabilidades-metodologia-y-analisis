@@ -1,7 +1,7 @@
 <div align="center">
     
 [ <img src="https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/portada_cve.png" alt="Portada CVE-2025-5548" >
-](https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/portada_cve.png?raw=true)
+](https://github.com/charlyrr/modulo6-vulnerabilidades-metodologia-y-analisis/blob/main/IMG/portada_cve2.png?raw=true)
 
   
   <h1>🛡️ Análisis y Explotación: CVE-2025-5548</h1>
