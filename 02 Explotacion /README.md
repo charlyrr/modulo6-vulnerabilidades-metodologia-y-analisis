@@ -34,21 +34,21 @@ Después, se sincronizó el diagrama de flujo con el panel de pseudocódigo usan
 
 `Click derecho sobre el panel de flujo → Synchronize with → Pseudocode-A`
 
-![Vista de IDA con pseudocódigo](02 Explotacion /IMG/vista%20ida%20geenrate.png)
+![Vista de IDA con pseudocódigo](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/vista%20ida%20geenrate.png)
 
 A continuación, se revisaron las cadenas del binario para localizar comandos interesantes del protocolo FTP. Para ello se abrió la subvista **Strings** y se filtró por `USER`.
 
-![Vista sincronizada](02 Explotacion /IMG/vista%20sincronize.png)
+![Vista sincronizada](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/vista%20sincronize.png)
 
-![Búsqueda de strings](02 Explotacion /IMG/vista%20string.png)
+![Búsqueda de strings](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/vista%20string.png)
 
 A partir de esa cadena se revisaron sus referencias cruzadas para identificar qué función la utilizaba.
 
-![Gráfico de referencias](02 Explotacion /IMG/graf.png)
+![Gráfico de referencias](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/graf.png)
 
 Del análisis se observó que una de las funciones implicadas realizaba operaciones inseguras sobre memoria, como el uso de `strcpy` sin una validación adecuada del tamaño de entrada.
 
-![Uso inseguro de strcpy](02 Explotacion /IMG/strcpy.png)
+![Uso inseguro de strcpy](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/strcpy.png)
 
 ---
 
@@ -56,17 +56,17 @@ Del análisis se observó que una de las funciones implicadas realizaba operacio
 
 Con la información obtenida en el análisis estático, se inició el servidor FTP haciendo doble clic sobre el binario.
 
-![Servidor FTP ejecutándose](02 Explotacion /IMG/ftpserver.png)
+![Servidor FTP ejecutándose](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/ftpserver.png)
 
 Después se abrió **Immunity Debugger** y se adjuntó al proceso del servidor para monitorizar su actividad:
 
 `File → Attach → seleccionar proceso → Enter`
 
-![Adjuntar proceso en Immunity](02 Explotacion /IMG/attach%20ftp.png)
+![Adjuntar proceso en Immunity](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/attach%20ftp.png)
 
 Una vez adjuntado, se obtuvo la vista del depurador asociada al proceso.
 
-![Proceso adjuntado en Immunity](02 Explotacion /IMG/immunity_ftp.png)
+![Proceso adjuntado en Immunity](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/immunity_ftp.png)
 
 > **Nota:** Immunity pausa la ejecución por defecto. Por eso fue necesario pulsar el botón **Play** para que el servicio siguiera funcionando con normalidad.
 
@@ -76,7 +76,7 @@ Antes de comenzar con las pruebas, se verificó que el servicio estaba activo y 
 ncat localhost 21
 ```
 
-![Comprobación del servicio con ncat](02 Explotacion /IMG/NCATRUN.png)
+![Comprobación del servicio con ncat](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/NCATRUN.png)
 
 ---
 
@@ -84,11 +84,11 @@ ncat localhost 21
 
 Confirmado que el servicio estaba activo, se pasó a la fase de **fuzzing**, enviando buffers de tamaño creciente para identificar si alguna entrada provocaba un fallo.
 
-![Ejecución del fuzzing](02 Explotacion /IMG/fuzzing.png)
+![Ejecución del fuzzing](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/fuzzing.png)
 
 Tras varias iteraciones, el servicio perdió la conexión al alcanzar un tamaño determinado. Al revisar el estado del proceso en **Immunity Debugger**, se observó que el registro **EIP** había sido sobrescrito con el valor `41414141`, correspondiente a la letra `A`.
 
-![Sobrescritura del EIP](02 Explotacion /IMG/register.png)
+![Sobrescritura del EIP](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/register.png)
 
 Esto confirmó que el desbordamiento era real y que existía la posibilidad de controlar el flujo de ejecución.
 
@@ -102,7 +102,7 @@ Como paso previo a la explotación, se configuró **Mona** para trabajar con un 
 !mona config -set workingfolder c:\mona
 ```
 
-![Configuración de Mona](02 Explotacion /IMG/mona.png)
+![Configuración de Mona](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/mona.png)
 
 ---
 
@@ -116,7 +116,7 @@ Para calcular con precisión el punto exacto en el que se sobrescribía el **EIP
 
 El patrón se copió al script correspondiente y se envió al servicio.
 
-![Patrón generado e insertado en el script](02 Explotacion /IMG/patterm.png)
+![Patrón generado e insertado en el script](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/patterm.png)
 
 Tras lanzar la prueba y observar el nuevo valor de **EIP**, se utilizó Mona para calcular el offset exacto:
 
@@ -124,20 +124,20 @@ Tras lanzar la prueba y observar el nuevo valor de **EIP**, se utilizó Mona par
 !mona pattern_offset 41326941
 ```
 
-![Cálculo del offset](02 Explotacion /IMG/offset.png)
+![Cálculo del offset](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/offset.png)
 
 El resultado obtenido fue un **offset de 246 bytes**. Para confirmarlo, se construyó una nueva entrada formada por:
 
 - 246 caracteres `A`
 - 4 caracteres `B` para sobrescribir el EIP
 
-![Valor observado en EIP](02 Explotacion /IMG/eip.png)
+![Valor observado en EIP](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/eip.png)
 
-![Script de validación del EIP](02 Explotacion /IMG/pythoneip.png)
+![Script de validación del EIP](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/pythoneip.png)
 
-![EIP sobrescrito con 42424242](02 Explotacion /IMG/eip42.png)
+![EIP sobrescrito con 42424242](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/eip42.png)
 
-![Confirmación visual del offset](02 Explotacion /IMG/aaabbb.png)
+![Confirmación visual del offset](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/aaabbb.png)
 
 El valor `42424242` en **EIP** confirmó que el control del registro era correcto.
 
@@ -155,17 +155,17 @@ Para ello se generó un array de bytes con Mona:
 
 Ese contenido se añadió al script encargado de enviar la prueba.
 
-![Script con bytearray](02 Explotacion /IMG/script05.png)
+![Script con bytearray](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/script05.png)
 
 Después de provocar el crash, se siguió el contenido apuntado por **ESP** usando la opción **Follow in Dump** y se comparó la memoria real con el bytearray generado por Mona.
 
-![Seguimiento en dump](02 Explotacion /IMG/badchar41.png)
+![Seguimiento en dump](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/badchar41.png)
 
 ```text
 !mona compare -f c:\mona\bytearray.bin -a 0092FBE4
 ```
 
-![Comparación con Mona](02 Explotacion /IMG/0092FBE4.png)
+![Comparación con Mona](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/0092FBE4.png)
 
 En la primera iteración se detectó el byte `\x00`, por lo que se eliminó del array y se regeneró el bytearray excluyéndolo:
 
@@ -179,7 +179,7 @@ Tras repetir el proceso varias veces, se determinó que los **badchars** para es
 \x00 \x0A \x0D
 ```
 
-![Badchars finales](02 Explotacion /IMG/00.png)
+![Badchars finales](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/00.png)
 
 ---
 
@@ -199,7 +199,7 @@ Resultado:
 \xff\xe4
 ```
 
-![Opcode de JMP ESP](02 Explotacion /IMG/xe4.png)
+![Opcode de JMP ESP](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/xe4.png)
 
 Después se buscaron direcciones que contuvieran ese opcode y que no incluyeran ninguno de los badchars detectados:
 
@@ -207,15 +207,15 @@ Después se buscaron direcciones que contuvieran ese opcode y que no incluyeran 
 !mona find -s "\xff\xe4" -cpb "\x00\x0A\x0D"
 ```
 
-![Búsqueda de dirección JMP ESP](02 Explotacion /IMG/758FA007.png)
+![Búsqueda de dirección JMP ESP](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/758FA007.png)
 
 Se seleccionó una dirección válida y se introdujo en el script para sobrescribir el **EIP**.
 
-![Script con dirección JMP ESP](02 Explotacion /IMG/06script.png)
+![Script con dirección JMP ESP](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/06script.png)
 
 Al ejecutar el script, se comprobó que el flujo continuaba por la zona prevista, comenzando por una secuencia de NOPs.
 
-![Validación del salto](02 Explotacion /IMG/mov.png)
+![Validación del salto](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/mov.png)
 
 ---
 
@@ -223,7 +223,7 @@ Al ejecutar el script, se comprobó que el flujo continuaba por la zona prevista
 
 Con la parte estructural de la explotación ya preparada, se generó un payload con **msfvenom** desde la máquina Kali Linux.
 
-![Generación de shellcode con msfvenom](02 Explotacion /IMG/kali_msf.png)
+![Generación de shellcode con msfvenom](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/kali_msf.png)
 
 En este laboratorio, el payload era de tipo **reverse TCP**, por lo que se configuró para que la máquina víctima se conectara a la IP y puerto de la máquina Kali.
 
@@ -233,13 +233,13 @@ En este laboratorio, el payload era de tipo **reverse TCP**, por lo que se confi
 
 Una vez reemplazado el shellcode de prueba por el shellcode real y ajustados los valores definitivos en el script, se ejecutó la versión final del exploit.
 
-![Script final de explotación](02 Explotacion /IMG/07script.png)
+![Script final de explotación](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/07script.png)
 
 El programa continuó en estado **running**, lo que indicaba que el proceso no se había cerrado y que el flujo de ejecución había sido redirigido correctamente.
 
 Por último, en la consola de Kali donde se había dejado preparado el handler de Metasploit, se recibió la shell remota.
 
-![Shell remota obtenida](02 Explotacion /IMG/final.png)
+![Shell remota obtenida](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/final.png)
 
 ---
 
