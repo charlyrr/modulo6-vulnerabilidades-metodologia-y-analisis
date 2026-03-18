@@ -237,7 +237,7 @@ Una vez reemplazado el shellcode de prueba por el shellcode real y ajustados los
 
 El programa continuó en estado **running**, lo que indicaba que el proceso no se había cerrado y que el flujo de ejecución había sido redirigido correctamente.
 
-Por último, en la consola de Kali donde se había dejado preparado el handler de Metasploit, se recibió la shell remota.
+Por último, en la consola de Kali donde se había dejado se recibió la shell remota.
 
 ![Shell remota obtenida](https://raw.githubusercontent.com/charlyrr/CVE-2025-5548/main/02%20Explotacion%20/IMG/final.png)
 
